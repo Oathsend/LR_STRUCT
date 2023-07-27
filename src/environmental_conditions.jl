@@ -1,3 +1,4 @@
+
 #= Generates parameters defined by the environmental conditions section of LR_NS. =#
 
 function _get_service_area_wavedata(serviceAreaString::String)
@@ -16,7 +17,7 @@ function _get_service_area_wavedata(serviceAreaString::String)
         "SA4" => Dict{String, Float64}("H_s" => 2.5, "T_z" => 6.0, "T_sd" => 1.5, "H_x" => 6.0),
     )
     return saDict[serviceAreaString]
-end
+	end
 
 function _get_normal_wave_design_criteria(serviceAreaString::String)
     #= Returns the wave design criteria for a given service area. =#
@@ -32,7 +33,7 @@ function _get_normal_wave_design_criteria(serviceAreaString::String)
     T_dsd = serviceAreaData["T_sd"]
     T_drange = (T_dw - 2 * T_dsd, T_dw + 2 * T_dsd)
     return H_dw, T_dw, T_dsd, T_drange
-end
+	end
 
 function _get_extreme_wave_design_criteria(serviceAreaString)
     #= Returns the extreme wave design criteria for a given service area. =#
@@ -52,7 +53,7 @@ function _get_extreme_wave_design_criteria(serviceAreaString)
     stormDuration = 10800
 
     return H_xw, T_xw, T_xrange, stormDuration
-end
+	end
 
 function _get_residual_strength_design_criteria(serviceAreaString)
     #= Returns the residual strength design criteria for a given service area. =#
@@ -71,7 +72,7 @@ function _get_residual_strength_design_criteria(serviceAreaString)
     seaStateDuration = 43200
 
     return H_rw, T_rw, T_rrange, seaStateDuration
-end
+	end
 
 function _get_service_area_factors(serviceAreaString, waterlineLength, operationalLife)
     #= Returns the service area factors for a given service area. =#
@@ -94,9 +95,9 @@ function _get_service_area_factors(serviceAreaString, waterlineLength, operation
     areaFactor = (factorDict[serviceAreaString]["F_1"] + factorDict[serviceAreaString]["F_2"] * (waterlineLength - 100) / 1000) * lifeFactor[operationalLife]
 
     return areaFactor, lifeFactor[operationalLife]
-end
+	end
 
-function _get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer, P_i::Float64}, ...}, waterlineLength, operationalLife)
+function _get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer, P_i::Float64}}, waterlineLength, operationalLife)
     #= Returns the restricted service criteria for a given service area. =#
 	#= variables:
 
@@ -116,13 +117,13 @@ function _get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer,
     25 => 1.01,
     30 => 1.019
     )
-    H_sm = sum(wdData[i[0]-1][0] * i[1] for i in t)
-	H_sm = sum(wdData[i[1]][1] * i[2] for i in t)
-    T_dw = sum(wdData[i[0]-1][1] * i[1] for i in t)
-    H_s = H_sm + math.sqrt(sum(i[1] * (wdData[i[0]-1][0])**2 for i in t))
-    T_sd = math.sqrt(sum(i[1] * (wdData[i[0]-1][2]**2 + (T_dw - wdData[i[0]-1][1])**2)) for i in t)
-    H_xm = sum(wdData[i[0]-1][3] * i[1] for i in t)
-    H_x = H_xm + math.sqrt(sum(i[1] * (wdData[i[0]-1][3] - H_xm)**2 for i in t))
-    F_s = math.log(sum(i[1] * math.e**(wfData[i[0]-1][0] + wfData[i[0]-1][1] * (waterlineLength - 100) / 1000) for i in t))
+    H_sm = sum(wdData[i[1]][1] * i[2] for i in t)
+    T_dw = sum(wdData[i[1]][2] * i[2] for i in t)
+    H_s = H_sm + sqrt(sum(i[2] * (wdData[i[1]][1])^2 for i in t))
+    T_sd = sqrt(sum(i[2] * (wdData[i[1]][3]^2 + (T_dw - wdData[i[1]][2])^2) for i in t))
+    H_xm = sum(wdData[i[1]][4] * i[2] for i in t)
+    H_x = H_xm + sqrt(sum(i[2] * (wdData[i[1]][4] - H_xm)^2 for i in t))
+    F_s = log(sum(i[2] * exp(1)^(wfData[i[1]][1] + wfData[i[1]][2] * (waterlineLength - 100) / 1000) for i in t))
 
     return H_s, T_dw, T_sd, H_x, F_s, lifeFactor[operationalLife]
+	end
