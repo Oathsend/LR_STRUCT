@@ -1,7 +1,8 @@
-
 #= Generates parameters defined by the environmental conditions section of LR_NS. =#
 
-function _get_service_area_wavedata(serviceAreaString::String)
+include(srcdir("wavedata.jl"))
+
+function get_service_area_wavedata(serviceAreaString::String)
     #= Returns the service area data for a given service area. =#
     #= variables:
         serviceAreaString = Service Area Notation (eg. SA1, SA2.)
@@ -19,7 +20,7 @@ function _get_service_area_wavedata(serviceAreaString::String)
     return saDict[serviceAreaString]
 	end
 
-function _get_normal_wave_design_criteria(serviceAreaString::String)
+function get_normal_wave_design_criteria(serviceAreaString::String)
     #= Returns the wave design criteria for a given service area. =#
     #= variables:
         H_dw = design wave height [m]
@@ -27,7 +28,7 @@ function _get_normal_wave_design_criteria(serviceAreaString::String)
         T_dsd = design wave period standard deviation [s]
         T_drange = design wave period range [s]
     =#
-    serviceAreaData = _get_service_area_wavedata(serviceAreaString)
+    serviceAreaData = get_service_area_wavedata(serviceAreaString)
     H_dw = 1.67 * serviceAreaData["H_s"]
     T_dw = serviceAreaData["T_z"]
     T_dsd = serviceAreaData["T_sd"]
@@ -35,7 +36,7 @@ function _get_normal_wave_design_criteria(serviceAreaString::String)
     return H_dw, T_dw, T_dsd, T_drange
 	end
 
-function _get_extreme_wave_design_criteria(serviceAreaString)
+function get_extreme_wave_design_criteria(serviceAreaString)
     #= Returns the extreme wave design criteria for a given service area. =#
     #= variables:
         H_xw = extreme wave height [m]
@@ -44,8 +45,8 @@ function _get_extreme_wave_design_criteria(serviceAreaString)
         stormDuration = storm duration [s]
     =#
 
-    serviceAreaData = _get_service_area_wavedata(serviceAreaString)
-    normalwd = _get_normal_wave_design_criteria(serviceAreaString)
+    serviceAreaData = get_service_area_wavedata(serviceAreaString)
+    normalwd = get_normal_wave_design_criteria(serviceAreaString)
 
     H_xw = serviceAreaData["H_x"]
     T_xw = normalwd[2] + normalwd[3]
@@ -55,7 +56,7 @@ function _get_extreme_wave_design_criteria(serviceAreaString)
     return H_xw, T_xw, T_xrange, stormDuration
 	end
 
-function _get_residual_strength_design_criteria(serviceAreaString)
+function get_residual_strength_design_criteria(serviceAreaString)
     #= Returns the residual strength design criteria for a given service area. =#
     #= variables:
         H_rw = residual wave height [m]
@@ -63,8 +64,8 @@ function _get_residual_strength_design_criteria(serviceAreaString)
         T_rrange = residual wave period range [s]
         seaStateDuration = sea state duration [s]
     =#
-    serviceAreaData = _get_service_area_wavedata(serviceAreaString)
-    normalwd = _get_normal_wave_design_criteria(serviceAreaString)
+    serviceAreaData = get_service_area_wavedata(serviceAreaString)
+    normalwd = get_normal_wave_design_criteria(serviceAreaString)
 
     H_rw = 0.9 * serviceAreaData["H_s"]
     T_rw = normalwd[2]
@@ -74,7 +75,7 @@ function _get_residual_strength_design_criteria(serviceAreaString)
     return H_rw, T_rw, T_rrange, seaStateDuration
 	end
 
-function _get_service_area_factors(serviceAreaString, waterlineLength, operationalLife)
+function get_service_area_factors(serviceAreaString, waterlineLength, operationalLife)
     #= Returns the service area factors for a given service area. =#
     #= variables:
     =#
@@ -97,7 +98,7 @@ function _get_service_area_factors(serviceAreaString, waterlineLength, operation
     return areaFactor, lifeFactor[operationalLife]
 	end
 
-function _get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer, P_i::Float64}}, waterlineLength, operationalLife)
+function get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer, P_i::Float64}}, waterlineLength, operationalLife)
     #= Returns the restricted service criteria for a given service area. =#
 	#= variables:
 
@@ -108,22 +109,19 @@ function _get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer,
     H_s = weighted average wave height plus one standard deviation [m]
     T_dw = weighted average of wave periods [s]
     =#
-	include(srcdir("wavedata.jl"))
-	using .wavedata
-    import math
 
     lifeFactor = Dict{Integer,Float64}(
     20 => 1.0,
     25 => 1.01,
     30 => 1.019
     )
-    H_sm = sum(wdData[i[1]][1] * i[2] for i in t)
-    T_dw = sum(wdData[i[1]][2] * i[2] for i in t)
-    H_s = H_sm + sqrt(sum(i[2] * (wdData[i[1]][1])^2 for i in t))
-    T_sd = sqrt(sum(i[2] * (wdData[i[1]][3]^2 + (T_dw - wdData[i[1]][2])^2) for i in t))
-    H_xm = sum(wdData[i[1]][4] * i[2] for i in t)
-    H_x = H_xm + sqrt(sum(i[2] * (wdData[i[1]][4] - H_xm)^2 for i in t))
-    F_s = log(sum(i[2] * exp(1)^(wfData[i[1]][1] + wfData[i[1]][2] * (waterlineLength - 100) / 1000) for i in t))
+    H_sm = sum(get_wdData(i[1])[1] * i[2] for i in t)
+    T_dw = sum(get_wdData(i[1])[2] * i[2] for i in t)
+    H_s = H_sm + sqrt(sum(i[2] * (get_wdData(i[1])[1])^2 for i in t))
+    T_sd = sqrt(sum(i[2] * (get_wdData(i[1])[3]^2 + (T_dw - get_wdData(i[1])[2])^2) for i in t))
+    H_xm = sum(get_wdData(i[1])[4] * i[2] for i in t)
+    H_x = H_xm + sqrt(sum(i[2] * (get_wdData(i[1])[4] - H_xm)^2 for i in t))
+    F_s = log(sum(i[2] * exp(1)^(get_wfData(i[1])[1] + get_wfData(i[1])[2] * (waterlineLength - 100) / 1000) for i in t))
 
     return H_s, T_dw, T_sd, H_x, F_s, lifeFactor[operationalLife]
 	end
