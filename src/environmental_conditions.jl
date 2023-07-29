@@ -2,7 +2,7 @@
 
 include(srcdir("wavedata.jl"))
 
-function get_service_area_wavedata(serviceAreaString::String)
+function get_service_area_wavedata(serviceAreaString)
     #= Returns the service area data for a given service area. =#
     #= variables:
         serviceAreaString = Service Area Notation (eg. SA1, SA2.)
@@ -11,16 +11,16 @@ function get_service_area_wavedata(serviceAreaString::String)
         T_sd = standard deviation of wave period [s]
         H_x = extreme design wave height [m]
     =#
-    saDict = Dict{String, Dict{String, Float64}}(
-        "SA1" => Dict{String, Float64}("H_s" => 5.5, "T_z" => 8.0, "T_sd" => 1.7, "H_x" => 18.5),
-        "SA2" => Dict{String, Float64}("H_s" => 4.0, "T_z" => 7.0, "T_sd" => 1.7, "H_x" => 13.5),
-        "SA3" => Dict{String, Float64}("H_s" => 3.6, "T_z" => 6.8, "T_sd" => 1.7, "H_x" => 9.5),
-        "SA4" => Dict{String, Float64}("H_s" => 2.5, "T_z" => 6.0, "T_sd" => 1.5, "H_x" => 6.0),
+    saDict = Dict(
+        "SA1" => Dict("H_s" => 5.5, "T_z" => 8.0, "T_sd" => 1.7, "H_x" => 18.5),
+        "SA2" => Dict("H_s" => 4.0, "T_z" => 7.0, "T_sd" => 1.7, "H_x" => 13.5),
+        "SA3" => Dict("H_s" => 3.6, "T_z" => 6.8, "T_sd" => 1.7, "H_x" => 9.5),
+        "SA4" => Dict("H_s" => 2.5, "T_z" => 6.0, "T_sd" => 1.5, "H_x" => 6.0),
     )
     return saDict[serviceAreaString]
 	end
 
-function get_normal_wave_design_criteria(serviceAreaString::String)
+function get_normal_wave_design_criteria(serviceAreaString)
     #= Returns the wave design criteria for a given service area. =#
     #= variables:
         H_dw = design wave height [m]
@@ -75,19 +75,19 @@ function get_residual_strength_design_criteria(serviceAreaString)
     return H_rw, T_rw, T_rrange, seaStateDuration
 	end
 
-function get_service_area_factors(serviceAreaString, waterlineLength, operationalLife)
+function get_service_area_factors(serviceAreaString, waterlineLength, operationalLife=20)
     #= Returns the service area factors for a given service area. =#
     #= variables:
     =#
 
-    factorDict = Dict{String,Dict{String,Float64}}(
-    "SA1" => Dict{String,Float64}("F_1" => 1.0, "F_2" => 0.0),
-    "SA2" => Dict{String,Float64}("F_1" => 0.93, "F_2" => -1.15),
-    "SA3" => Dict{String,Float64}("F_1" => 0.7, "F_2" => -1.0),
-    "SA4" => Dict{String,Float64}("F_1" => 0.5, "F_2" => 0.0),
+    factorDict = Dict(
+    "SA1" => Dict("F_1" => 1.0, "F_2" => 0.0),
+    "SA2" => Dict("F_1" => 0.93, "F_2" => -1.15),
+    "SA3" => Dict("F_1" => 0.7, "F_2" => -1.0),
+    "SA4" => Dict("F_1" => 0.5, "F_2" => 0.0),
     )
 
-    lifeFactor = Dict{Integer,Float64}(
+    lifeFactor = Dict(
     20 => 1.0,
     25 => 1.01,
     30 => 1.019
@@ -98,7 +98,7 @@ function get_service_area_factors(serviceAreaString, waterlineLength, operationa
     return areaFactor, lifeFactor[operationalLife]
 	end
 
-function get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer, P_i::Float64}}, waterlineLength, operationalLife)
+function get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer, P_i::Float64}}, waterlineLength::Float64, operationalLife::Integer=20)
     #= Returns the restricted service criteria for a given service area. =#
 	#= variables:
 
@@ -110,7 +110,7 @@ function get_restricted_service_criteria(t::Array{@NamedTuple{seaarea::Integer, 
     T_dw = weighted average of wave periods [s]
     =#
 
-    lifeFactor = Dict{Integer,Float64}(
+    lifeFactor = Dict(
     20 => 1.0,
     25 => 1.01,
     30 => 1.019
