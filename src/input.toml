@@ -1,3 +1,16 @@
 [servicearea]
-service_area = "SA1"
-sea_areas = [1, 2, 3, 6, 90, 22, 5]
+service_area = "SA2" # Service area notation, e.g. [SA1, SA2, SA3, SA4, SAR*] * NOTE SAR NOT YET IMPLEMENTED
+sea_areas = [1, 2, 3, 6, 90, 22, 5] # Sea areas that vessel is to be operational in.
+
+[ship]
+disp = 8100 # tonnes
+L_wl = 142 # meters
+B_wl = 20.21 # meters
+C_b = 0.45 # block coefficient
+T = 6.5 # meters
+LCG = 71.5 # meters
+GM = 4.1 # meters
+V_cr = 9.32 # knots, 14*0.66
+v_sp = 14.66 # knots, 22*0.666
+operational_life = 20 # years
+
