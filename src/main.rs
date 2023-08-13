@@ -3,6 +3,9 @@ use toml::map::Map;
 use serde::Deserialize;
 use std::any::type_name;
 
+fn type_of<T>(_: T) -> &'static str {
+    type_name::<T>()
+}
 
 #[derive(Debug, Deserialize)]
 struct WaveData {
@@ -10,10 +13,6 @@ struct WaveData {
     t_z: f32,
     t_sd: f32,
     h_x: f32,
-}
-
-fn type_of<T>(_: T) -> &'static str {
-    type_name::<T>()
 }
 
 fn main() {
@@ -32,9 +31,14 @@ fn read_input() {
         _ => None
     }).unwrap_or(Map::new());
     let service_area = service_area_notation(input);
-    println!("Service area notation is: {}", &service_area);
-    let wave_data = get_wave_data(service_area);
-    println!("Wave data for service area is: {:#?}", &wave_data);
+    let s: &str = &service_area[1..service_area.len()-1]; // This is required to strip the quote marks around the notation. 
+    println!("Service area notation is: {}", &s);
+    let wave_data = get_wave_data(s);
+    println!("Wave data for service area is:");
+    println!("H_s: {}", wave_data.h_s);
+    println!("T_z: {}", wave_data.t_z);
+    println!("T_sd: {}", wave_data.t_sd);
+    println!("H_x: {}", wave_data.h_x);
 }
 
 fn service_area_notation(input: Map<String, Value>) -> String {
@@ -42,7 +46,7 @@ fn service_area_notation(input: Map<String, Value>) -> String {
     service_area
 }
 
-fn get_wave_data(service_area: String) -> WaveData {
+fn get_wave_data(s: &str) -> WaveData {
     let path = std::path::Path::new("src/serviceareas.toml");
     let file = match std::fs::read_to_string(path) {
         Ok(f) => f,
@@ -52,10 +56,7 @@ fn get_wave_data(service_area: String) -> WaveData {
         Value::Table(table) => Some(table),
         _ => None
     }).unwrap_or(Map::new());
-    let s: &str = &service_area[1..service_area.len()-1]; // This is required to strip the quote marks around the notation. 
     let wavedata = serviceareas["wavedata"][s].clone();
-    // println!("{}",type_of(serviceareas["wavedata"][s].clone()))
     let out = wavedata.try_into::<WaveData>();
     out.expect("")
-
 }
